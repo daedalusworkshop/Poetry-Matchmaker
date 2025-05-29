@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Perfect Poem</title>
+  <style>
+    :root {
+      /* Light theme colors */
+      --bg-light: #FAF7F0;
+      --surface-light: #F5F1E8;
+      --text-light: #2C2C2C;
+      --text-secondary-light: #5A5A5A;
+      --accent-light: #D4A574;
+      --border-light: rgba(44, 44, 44, 0.2);
+      
+      /* Dark theme colors */
+      --bg-dark: #1A1D21;
+      --surface-dark: #2C2C2C;
+      --text-dark: #F5F1E8;
+      --text-secondary-dark: rgba(245, 241, 232, 0.7);
+      --accent-dark: #D4A574;
+      --border-dark: rgba(245, 241, 232, 0.2);
+      
+      /* Current theme (default to dark) */
+      --bg: var(--bg-dark);
+      --surface: var(--surface-dark);
+      --text: var(--text-dark);
+      --text-secondary: var(--text-secondary-dark);
+      --accent: var(--accent-dark);
+      --border: var(--border-dark);
+    }
+
+    [data-theme="light"] {
+      --bg: var(--bg-light);
+      --surface: var(--surface-light);
+      --text: var(--text-light);
+      --text-secondary: var(--text-secondary-light);
+      --accent: var(--accent-light);
+      --border: var(--border-light);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', 'Times New Roman', Times, serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 4em 1em;
+      transition: background-color 0.6s ease, color 0.6s ease;
+      position: relative;
+    }
+
+    /* Subtle background texture */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.015) 1px, transparent 0);
+      background-size: 20px 20px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .poem-content {
+      max-width: 800px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .poem-title {
+      font-size: 3rem;
+      font-weight: 600;
+      margin-bottom: 0.5em;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      font-style: italic;
+      line-height: 1.1;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .poem-author {
+      font-size: 1.4rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 3em;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5em;
+    }
+
+    .poem-text {
+      font-size: 1.5rem;
+      line-height: 2.2;
+      white-space: pre-line;
+      color: var(--text);
+      font-style: italic;
+      margin-bottom: 4em;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .back-button {
+      position: fixed;
+      top: 24px;
+      left: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 2em;
+      color: var(--text);
+      font-family: 'Georgia', 'Times New Roman', Times, serif;
+      font-style: italic;
+      font-size: 1rem;
+      padding: 0.6em 1.4em;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+
+    .back-button:hover {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+      transform: scale(1.02);
+    }
+
+    .theme-switcher {
+      position: fixed;
+      top: 24px;
+      right: 32px;
+      z-index: 10;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 2em;
+      padding: 0.5em 1em;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+      font-size: 1.2rem;
+    }
+
+    .theme-switcher:hover {
+      background: var(--accent);
+      color: var(--bg);
+      transform: scale(1.02);
+    }
+
+    .info-icon-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .info-tooltip {
+      display: block;
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      left: 50%;
+      top: 140%;
+      transform: translateX(-50%) scale(0.95);
+      min-width: 350px;
+      max-width: 450px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      color: var(--text);
+      border-radius: 1.5em;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      padding: 2em 2.5em;
+      z-index: 100;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      text-align: center;
+      font-family: 'Georgia', 'Times New Roman', Times, serif;
+      border: 1px solid var(--border);
+    }
+
+    .info-icon-wrapper:hover .info-tooltip {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) scale(1);
+    }
+
+    .info-tooltip-title {
+      font-size: 1.3em;
+      font-weight: 600;
+      margin-bottom: 0.8em;
+      letter-spacing: 0.02em;
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .info-tooltip-desc {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      font-style: italic;
+      line-height: 1.6;
+      letter-spacing: 0.01em;
+    }
+
+    .loading {
+      text-align: center;
+      color: var(--text-secondary);
+      font-style: italic;
+      font-size: 1.3rem;
+      margin-top: 2em;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 2em 1em;
+      }
+      .poem-title {
+        font-size: 2.2rem;
+      }
+      .poem-text {
+        font-size: 1.2rem;
+        line-height: 2;
+      }
+      .back-button, .theme-switcher {
+        top: 16px;
+        font-size: 0.9rem;
+        padding: 0.5em 1em;
+      }
+      .back-button {
+        left: 16px;
+      }
+      .theme-switcher {
+        right: 16px;
+      }
+      .info-tooltip {
+        min-width: 280px;
+        max-width: 320px;
+        padding: 1.5em 2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-switcher" id="themeSwitcher">🌙</div>
+  <a href="/" class="back-button">← New Search</a>
+  
+  <div class="poem-content" id="poemContent">
+    <div class="loading">Finding your perfect poem...</div>
+  </div>
+
+  <script>
+    // Theme switching (matching main page)
+    let currentTheme = 'dark';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', currentTheme);
+      document.getElementById('themeSwitcher').textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+      localStorage.setItem('poetry-theme', currentTheme);
+    }
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('poetry-theme');
+    if (savedTheme) {
+      currentTheme = savedTheme;
+      document.body.setAttribute('data-theme', currentTheme);
+      document.getElementById('themeSwitcher').textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+    }
+
+    document.getElementById('themeSwitcher').addEventListener('click', toggleTheme);
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const poemData = sessionStorage.getItem('poemResult');
+      const poemContent = document.getElementById('poemContent');
+      
+      if (!poemData) {
+        poemContent.innerHTML = `
+          <div class="poem-title">No poem found</div>
+          <div class="poem-author">Please go back and try again</div>
+        `;
+        return;
+      }
+
+      try {
+        const data = JSON.parse(poemData);
+        
+        // Use the new qualia field from metadata
+        let qualiaExplanation = data.metadata && data.metadata.qualia
+          ? data.metadata.qualia
+          : "This poem was selected by AI as the perfect match for your thoughts and feelings.";
+        
+        // Enhanced layout with better typography
+        const html = `
+          <div class="poem-title">${data.title}</div>
+          <div class="poem-author">
+            by ${data.author}
+            <span class="info-icon-wrapper">
+              <svg class="info-icon" xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 20 20" fill="none" style="cursor: pointer; opacity: 0.7; transition: opacity 0.3s;">
+                <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <rect x="9.1" y="8.5" width="1.8" height="6" rx="0.9" fill="currentColor"/>
+                <circle cx="10" cy="6" r="1.1" fill="currentColor"/>
+              </svg>
+              <div class="info-tooltip">
+                <div class="info-tooltip-title">Why this poem?</div>
+                <div class="info-tooltip-desc">${qualiaExplanation}</div>
+              </div>
+            </span>
+          </div>
+          <div class="poem-text">${data.poem_text}</div>
+        `;
+        
+        poemContent.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error parsing poem data:', error);
+        poemContent.innerHTML = `
+          <div class="poem-title">Error loading poem</div>
+          <div class="poem-author">Please try again</div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html> 

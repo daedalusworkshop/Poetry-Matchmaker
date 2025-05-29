@@ -1,0 +1,6 @@
+pandas
+chromadb
+openai
+umap-learn
+plotly
+scikit-learn

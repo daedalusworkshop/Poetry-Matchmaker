@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poetry Matchmaker</title>
+  <style>
+    :root {
+      /* Light theme colors */
+      --bg-light: #FAF7F0;
+      --surface-light: #F5F1E8;
+      --text-light: #2C2C2C;
+      --text-secondary-light: #5A5A5A;
+      --accent-light: #D4A574;
+      --border-light: rgba(44, 44, 44, 0.2);
+      
+      /* Dark theme colors */
+      --bg-dark: #1A1D21;
+      --surface-dark: #2C2C2C;
+      --text-dark: #F5F1E8;
+      --text-secondary-dark: rgba(245, 241, 232, 0.7);
+      --accent-dark: #D4A574;
+      --border-dark: rgba(245, 241, 232, 0.2);
+      
+      /* Current theme (default to dark) */
+      --bg: var(--bg-dark);
+      --surface: var(--surface-dark);
+      --text: var(--text-dark);
+      --text-secondary: var(--text-secondary-dark);
+      --accent: var(--accent-dark);
+      --border: var(--border-dark);
+      
+      /* Recording colors */
+      --recording-primary: #ff4757;
+      --recording-glow: rgba(255, 71, 87, 0.3);
+      
+      /* Breathing glow parameters */
+      --breathing-duration: 5s;
+      --breathing-max-scale: 1.15;
+      --breathing-min-scale: 0.98;
+      --glow-base-size: 20px;
+      --glow-peak-size: 30px;
+      --glow-base-opacity: 0.35;
+      --glow-peak-opacity: 0.5;
+      --inner-glow-base: 20px;
+      --inner-glow-peak: 30px;
+      --inner-glow-base-opacity: 0.1;
+      --inner-glow-peak-opacity: 0.2;
+    }
+
+    [data-theme="light"] {
+      --bg: var(--bg-light);
+      --surface: var(--surface-light);
+      --text: var(--text-light);
+      --text-secondary: var(--text-secondary-light);
+      --accent: var(--accent-light);
+      --border: var(--border-light);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      font-family: 'Georgia', 'Times New Roman', Times, serif;
+      transition: background-color 0.6s ease, color 0.6s ease;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Subtle background texture */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.015) 1px, transparent 0);
+      background-size: 20px 20px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .attract {
+      padding: 0 1.7em;
+      height: 3.5em;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 2em;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      font-size: 2.2rem;
+      font-weight: 400;
+      user-select: none;
+      will-change: transform;
+      cursor: pointer;
+      transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                  border 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                  box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                  color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: 0.01em;
+      min-width: 280px;
+      min-height: 3.5em;
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(10px);
+    }
+
+    .attract:not(.recording):not(.expanded) {
+      font-style: italic;
+    }
+
+    .attract:active {
+      transform: scale(1.01);
+      transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .attract.expanded {
+      width: 45vw;
+      height: 45vh;
+      border-radius: 1.5em;
+      flex-direction: column;
+      align-items: stretch;
+      cursor: text;
+      min-height: 0;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+      max-width: 600px;
+      min-width: 320px;
+    }
+
+    .attract-textarea {
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      flex: 1 1 0;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 1.4rem;
+      font-family: 'Georgia', 'Times New Roman', Times, serif;
+      font-style: italic;
+      outline: none;
+      resize: none;
+      margin: 0;
+      padding: 1.5em 1.5em 1em 1.5em;
+      line-height: 1.6;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .attract-textarea::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.8;
+    }
+
+    /* Breathing Recording Button */
+    .attract.recording {
+      background: transparent;
+      border: none;
+      min-width: 160px;
+      min-height: 160px;
+      border-radius: 50%;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+      color: transparent;
+      font-size: 0;
+      position: relative;
+      isolation: isolate;
+      z-index: 10;
+      outline: none;
+    }
+
+    .attract.recording:focus,
+    .attract.recording:active,
+    .attract.recording:hover {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      outline: none;
+    }
+
+    .recording-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      isolation: isolate;
+      z-index: 11;
+      background: transparent;
+      border: none;
+      outline: none;
+      box-shadow: none;
+    }
+
+    /* Breathing center circle */
+    .breathing-circle {
+      width: 80px;
+      height: 80px;
+      background: var(--recording-primary);
+      border-radius: 50%;
+      position: relative;
+      z-index: 3;
+      animation: breathe var(--breathing-duration) ease-in-out infinite;
+      box-shadow: 0 0 var(--glow-base-size) rgba(255, 71, 87, var(--glow-base-opacity)),
+                  inset 0 0 var(--inner-glow-base) rgba(255, 255, 255, var(--inner-glow-base-opacity));
+    }
+
+    @keyframes breathe {
+      0%   { 
+        transform: scale(1);
+        box-shadow: 0 0 var(--glow-base-size) rgba(255, 71, 87, var(--glow-base-opacity)),
+                    inset 0 0 var(--inner-glow-base) rgba(255, 255, 255, var(--inner-glow-base-opacity));
+      }
+      10%  { transform: scale(1); }
+      40%  { 
+        transform: scale(var(--breathing-max-scale));
+        box-shadow: 0 0 var(--glow-peak-size) rgba(255, 71, 87, var(--glow-peak-opacity)),
+                    inset 0 0 var(--inner-glow-peak) rgba(255, 255, 255, var(--inner-glow-peak-opacity));
+      }
+      70%  { transform: scale(var(--breathing-min-scale)); }
+      100% { 
+        transform: scale(1);
+        box-shadow: 0 0 var(--glow-base-size) rgba(255, 71, 87, var(--glow-base-opacity)),
+                    inset 0 0 var(--inner-glow-base) rgba(255, 255, 255, var(--inner-glow-base-opacity));
+      }
+    }
+
+    /* Hover state for recording button */
+    .attract.recording.hover-enabled:hover .breathing-circle {
+      background: var(--text);
+      transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), animation-duration 0.4s ease;
+    }
+
+    /* Theme switcher */
+    .theme-switcher {
+      position: fixed;
+      top: 24px;
+      right: 32px;
+      z-index: 10;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 2em;
+      padding: 0.5em 1em;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+    }
+
+    .theme-switcher:hover {
+      background: var(--accent);
+      color: var(--bg);
+      transform: scale(1.02);
+    }
+
+    .mode-switcher {
+      position: fixed;
+      top: 24px;
+      left: 32px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 0.7em;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 2em;
+      padding: 0.5em 1.2em;
+      font-family: 'Georgia', 'Times New Roman', Times, serif;
+      font-size: 1rem;
+      color: var(--text);
+      user-select: none;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .mode-switcher .mode {
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+      padding: 0 0.3em;
+    }
+
+    .mode-switcher .mode.selected {
+      opacity: 1;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .mode-switcher .slash {
+      opacity: 0.4;
+      font-weight: 300;
+      pointer-events: none;
+    }
+
+    .attract-bottom-bar {
+      width: 100%;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      border-bottom-left-radius: 1.5em;
+      border-bottom-right-radius: 1.5em;
+      min-height: 2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .attract-bottom-bar:hover {
+      background: var(--accent);
+    }
+
+    .attract-bottom-bar:hover .attract-submit-btn {
+      color: var(--bg);
+    }
+
+    .attract-submit-btn {
+      width: 100%;
+      height: 100%;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.3rem;
+      font-family: 'Georgia', 'Times New Roman', Times, serif;
+      font-style: italic;
+      text-align: center;
+      cursor: pointer;
+      padding: 0.8em 0;
+      margin: 0;
+      transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 500;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      backdrop-filter: blur(20px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+    .loading-text {
+      color: var(--text);
+      font-family: 'Georgia', 'Times New Roman', Times, serif;
+      font-style: italic;
+      font-size: 1.5rem;
+      margin-top: 1em;
+      text-align: center;
+      font-weight: 500;
+    }
+    .loading-subtext {
+      color: var(--text-secondary);
+      font-family: 'Georgia', 'Times New Roman', Times, serif;
+      font-style: normal;
+      font-size: 1.1rem;
+      margin-top: 0.5em;
+      text-align: center;
+      max-width: 400px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      font-weight: 400;
+    }
+    .loading-bar-container {
+      width: 300px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 2em 0 1em 0;
+      overflow: hidden;
+    }
+    .loading-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--text-secondary));
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .attract.expanded {
+        width: 85vw;
+        height: 50vh;
+      }
+      .mode-switcher {
+        left: 16px;
+        top: 16px;
+        font-size: 0.9rem;
+      }
+      .theme-switcher {
+        right: 16px;
+        top: 16px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-switcher" id="themeSwitcher">🌙</div>
+  <div class="mode-switcher" id="modeSwitcher">
+    <span class="mode selected" data-mode="microphone">Microphone</span>
+    <span class="slash">/</span>
+    <span class="mode" data-mode="keyboard">Keyboard</span>
+  </div>
+  <div class="attract" id="attractBtn">What's stirring in your heart today?</div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-bar-container">
+      <div class="loading-bar" id="loadingBar"></div>
+    </div>
+    <div class="loading-text" id="loadingText">Finding your perfect poem...</div>
+    <div class="loading-subtext" id="loadingSubtext">Searching through thousands of poems</div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
+  <script>
+    // Mouse attraction setup
+    const attractBtn = document.getElementById('attractBtn');
+    const MAX_OFFSET = 8;
+
+    function mouseAttract(el, maxOffset = 8) {
+      const rect = () => el.getBoundingClientRect();
+      const center = () => {
+        const r = rect();
+        return {
+          x: r.left + r.width / 2,
+          y: r.top + r.height / 2
+        };
+      };
+
+      const setX = gsap.quickTo(el, "x", { duration: 0.5, ease: "power3.out" });
+      const setY = gsap.quickTo(el, "y", { duration: 0.5, ease: "power3.out" });
+
+      function onMove(e) {
+        const c = center();
+        const dx = e.clientX - c.x;
+        const dy = e.clientY - c.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const maxDist = Math.sqrt(window.innerWidth ** 2 + window.innerHeight ** 2);
+        const factor = Math.min(dist / (maxDist / maxOffset), 1);
+        const angle = Math.atan2(dy, dx);
+        const x = Math.cos(angle) * factor * maxOffset;
+        const y = Math.sin(angle) * factor * maxOffset;
+        setX(x);
+        setY(y);
+      }
+
+      window.addEventListener("mousemove", onMove);
+      return () => {
+        window.removeEventListener("mousemove", onMove);
+        setX(0);
+        setY(0);
+      };
+    }
+
+    mouseAttract(attractBtn, MAX_OFFSET);
+
+    // Mode switching and interaction
+    const modeSwitcher = document.getElementById('modeSwitcher');
+    const themeSwitcher = document.getElementById('themeSwitcher');
+    const modeSpans = modeSwitcher.querySelectorAll('.mode');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    let currentMode = 'microphone';
+    let expanded = false;
+    let recording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let currentTheme = 'dark';
+
+    // Contemplative prompts that rotate
+    const contemplativePrompts = [
+      "What's stirring in your heart today?",
+      "What truth wants to be spoken?",
+      "What feeling seeks its poem?",
+      "What's been quietly waiting to be heard?",
+      "What would you like to remember about this moment?",
+      "What emotion needs expression?",
+      "What story lives within you right now?"
+    ];
+
+    const typingPrompts = [
+      "Type what's stirring in your heart...",
+      "Share what truth wants to be spoken...",
+      "Express what feeling seeks its poem...",
+      "Write what's been quietly waiting...",
+      "Capture what you'd like to remember...",
+      "Put your emotions into words...",
+      "Tell your story..."
+    ];
+
+    let currentPromptIndex = 0;
+
+    function getNextPrompt(isTyping = false) {
+      const prompts = isTyping ? typingPrompts : contemplativePrompts;
+      const prompt = prompts[currentPromptIndex];
+      currentPromptIndex = (currentPromptIndex + 1) % prompts.length;
+      return prompt;
+    }
+
+    function updateButtonText() {
+      if (currentMode === 'microphone' && !recording) {
+        attractBtn.textContent = getNextPrompt(false);
+      } else if (currentMode === 'keyboard' && !expanded) {
+        attractBtn.textContent = getNextPrompt(false);
+      }
+    }
+
+    // Theme switching
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', currentTheme);
+      themeSwitcher.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+      
+      // Save theme preference
+      localStorage.setItem('poetry-theme', currentTheme);
+    }
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('poetry-theme');
+    if (savedTheme) {
+      currentTheme = savedTheme;
+      document.body.setAttribute('data-theme', currentTheme);
+      themeSwitcher.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+    }
+
+    themeSwitcher.addEventListener('click', toggleTheme);
+
+    // Initialize with first prompt
+    updateButtonText();
+
+    function showLoading() {
+      loadingOverlay.style.display = 'flex';
+      updateLoadingProgress(0, "Finding your perfect poem...", "Searching through thousands of poems");
+    }
+
+    function hideLoading() {
+      loadingOverlay.style.display = 'none';
+    }
+
+    function updateLoadingProgress(percentage, mainText, subText) {
+      const loadingBar = document.getElementById('loadingBar');
+      const loadingText = document.getElementById('loadingText');
+      const loadingSubtext = document.getElementById('loadingSubtext');
+      
+      if (percentage !== null) {
+        loadingBar.style.width = percentage + '%';
+      }
+      if (mainText !== null) {
+        loadingText.textContent = mainText;
+      }
+      if (subText !== null) {
+        loadingSubtext.textContent = subText;
+      }
+    }
+
+    function navigateToResult(data) {
+      // Store result data in sessionStorage
+      sessionStorage.setItem('poemResult', JSON.stringify(data));
+      window.location.href = '/result';
+    }
+
+    async function processText(text) {
+      try {
+        showLoading();
+        
+        // Use EventSource for real-time updates
+        const eventSource = new EventSource(`/api/process_text_stream?query=${encodeURIComponent(text)}`);
+        
+        let hasReceivedResult = false;
+        
+        eventSource.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          
+          switch(data.type) {
+            case 'status':
+              if (data.message.includes("Searching for the top")) {
+                updateLoadingProgress(5, data.message, "Finding semantically similar poems");
+              } else if (data.message.includes("Scoring poems for relevance")) {
+                updateLoadingProgress(10, data.message, "Preparing to evaluate 22 poems");
+              } else if (data.message.includes("Selecting the perfect")) {
+                updateLoadingProgress(95, data.message, "Choosing your best match");
+              } else if (data.message.includes("Perfect match found")) {
+                updateLoadingProgress(98, data.message, "Redirecting to your poem...");
+              } else if (data.message.includes("Formatting")) {
+                updateLoadingProgress(100, data.message, "Preparing your poem");
+              } else {
+                updateLoadingProgress(15, data.message, "Processing your request...");
+              }
+              break;
+            case 'scoring':
+              // Extract poem number from message like "Scoring poem 13/22: 'Title' by Author"
+              const match = data.message.match(/Scoring poem (\d+)\/22:/);
+              if (match) {
+                const poemNumber = parseInt(match[1]);
+                // Progress from 15% to 90% based on poem number (1-22)
+                const progress = 15 + (poemNumber / 22) * 75; // 15% + (75% range)
+                updateLoadingProgress(progress, "Evaluating poem relevance...", data.message);
+              } else {
+                updateLoadingProgress(50, "Evaluating poem relevance...", data.message);
+              }
+              break;
+            case 'score':
+              // Keep current progress, just update subtext with score
+              updateLoadingProgress(null, null, data.message);
+              break;
+            case 'complete':
+              hasReceivedResult = true;
+              updateLoadingProgress(null, "Perfect match found!", "Redirecting to your poem...");
+              setTimeout(() => {
+                hideLoading();
+                eventSource.close();
+                const result = JSON.parse(data.message);
+                if (result.success) {
+                  navigateToResult(result);
+                } else {
+                  alert('Error: ' + result.error);
+                }
+              }, 800);
+              break;
+            case 'error':
+              hideLoading();
+              eventSource.close();
+              alert('Error processing request: ' + data.message);
+              break;
+            case 'heartbeat':
+              // Ignore heartbeat messages
+              break;
+          }
+        };
+        
+        eventSource.onerror = function(event) {
+          // Only show error if we haven't received a result yet
+          if (!hasReceivedResult) {
+            hideLoading();
+            eventSource.close();
+            alert('Connection error. Please try again.');
+          }
+        };
+        
+      } catch (error) {
+        hideLoading();
+        alert('Error processing request: ' + error.message);
+      }
+    }
+
+    async function processAudio(audioBlob) {
+      try {
+        showLoading();
+        updateLoadingProgress(5, "Transcribing your voice...", "Converting speech to text");
+        
+        // First, transcribe the audio
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+
+        const transcribeResponse = await fetch('/api/transcribe_audio', {
+          method: 'POST',
+          body: formData
+        });
+
+        const transcribeData = await transcribeResponse.json();
+        
+        if (!transcribeData.success) {
+          hideLoading();
+          alert('Error: ' + transcribeData.error);
+          return;
+        }
+        
+        updateLoadingProgress(10, "Transcription complete", `"${transcribeData.transcription}"`);
+        
+        // Now process with streaming
+        const eventSource = new EventSource(`/api/process_audio_stream?query=${encodeURIComponent(transcribeData.transcription)}`);
+        
+        let hasReceivedResult = false;
+        
+        eventSource.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          
+          switch(data.type) {
+            case 'status':
+              if (data.message.includes("Searching for the top")) {
+                updateLoadingProgress(15, data.message, "Finding semantically similar poems");
+              } else if (data.message.includes("Scoring poems for relevance")) {
+                updateLoadingProgress(20, data.message, "Preparing to evaluate 22 poems");
+              } else if (data.message.includes("Selecting the perfect")) {
+                updateLoadingProgress(95, data.message, "Choosing your best match");
+              } else if (data.message.includes("Perfect match found")) {
+                updateLoadingProgress(98, data.message, "Redirecting to your poem...");
+              } else if (data.message.includes("Formatting")) {
+                updateLoadingProgress(100, data.message, "Preparing your poem");
+              } else {
+                updateLoadingProgress(25, data.message, "Processing your transcription...");
+              }
+              break;
+            case 'scoring':
+              // Extract poem number from message like "Scoring poem 13/22: 'Title' by Author"
+              const match = data.message.match(/Scoring poem (\d+)\/22:/);
+              if (match) {
+                const poemNumber = parseInt(match[1]);
+                // Progress from 25% to 90% based on poem number (1-22)
+                const progress = 25 + (poemNumber / 22) * 65; // 25% + (65% range)
+                updateLoadingProgress(progress, "Evaluating poem relevance...", data.message);
+              } else {
+                updateLoadingProgress(60, "Evaluating poem relevance...", data.message);
+              }
+              break;
+            case 'score':
+              // Keep current progress, just update subtext with score
+              updateLoadingProgress(null, null, data.message);
+              break;
+            case 'complete':
+              hasReceivedResult = true;
+              updateLoadingProgress(null, "Perfect match found!", "Redirecting to your poem...");
+              setTimeout(() => {
+                hideLoading();
+                eventSource.close();
+                const result = JSON.parse(data.message);
+                if (result.success) {
+                  navigateToResult(result);
+                } else {
+                  alert('Error: ' + result.error);
+                }
+              }, 800);
+              break;
+            case 'error':
+              hideLoading();
+              eventSource.close();
+              alert('Error processing audio: ' + data.message);
+              break;
+            case 'heartbeat':
+              // Ignore heartbeat messages
+              break;
+          }
+        };
+        
+        eventSource.onerror = function(event) {
+          // Only show error if we haven't received a result yet
+          if (!hasReceivedResult) {
+            hideLoading();
+            eventSource.close();
+            alert('Connection error. Please try again.');
+          }
+        };
+        
+      } catch (error) {
+        hideLoading();
+        alert('Error processing audio: ' + error.message);
+      }
+    }
+
+    attractBtn.addEventListener('click', async () => {
+      if (currentMode === 'keyboard' && !expanded) {
+        expanded = true;
+        attractBtn.classList.add('expanded');
+        attractBtn.innerHTML = `
+          <textarea class="attract-textarea" placeholder="${getNextPrompt(true)}"></textarea>
+          <div class="attract-bottom-bar">
+            <button class="attract-submit-btn">Submit</button>
+          </div>
+        `;
+        const submitBtn = attractBtn.querySelector('.attract-submit-btn');
+        const textarea = attractBtn.querySelector('.attract-textarea');
+        
+        submitBtn.addEventListener('click', () => {
+          const text = textarea.value.trim();
+          if (text) {
+            processText(text);
+          }
+        });
+        
+        textarea.focus();
+      } else if (currentMode === 'microphone' && !recording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            processAudio(audioBlob);
+            stream.getTracks().forEach(track => track.stop());
+          };
+
+          mediaRecorder.start();
+          recording = true;
+          attractBtn.classList.add('recording');
+          attractBtn.innerHTML = `
+            <div class="recording-container">
+              <div class="breathing-circle"></div>
+            </div>
+          `;
+          
+          setTimeout(() => {
+            attractBtn.classList.add('hover-enabled');
+          }, 3000);
+          
+          const recContainer = attractBtn.querySelector('.recording-container');
+          recContainer.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (mediaRecorder && recording) {
+              mediaRecorder.stop();
+              recording = false;
+              attractBtn.classList.remove('recording', 'hover-enabled');
+              updateButtonText();
+            }
+          }, { once: true });
+        } catch (error) {
+          alert('Error accessing microphone: ' + error.message);
+        }
+      }
+    });
+
+    modeSpans.forEach(span => {
+      span.addEventListener('click', () => {
+        if (span.dataset.mode === currentMode) return;
+        currentMode = span.dataset.mode;
+        modeSpans.forEach(s => s.classList.toggle('selected', s.dataset.mode === currentMode));
+        
+        recording = false;
+        expanded = false;
+        attractBtn.classList.remove('recording', 'expanded', 'hover-enabled');
+        updateButtonText();
+      });
+    });
+
+  </script>
+</body>
+</html> 

@@ -1,0 +1,158 @@
+body {
+  background: #181c20;
+  color: #fff;
+  font-family: 'Georgia', 'Times New Roman', Times, serif;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4em 1em;
+}
+
+.poem-content {
+  max-width: 700px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.poem-title {
+  font-size: 2.4rem;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+  color: #fff;
+  letter-spacing: 0.01em;
+  font-style: italic;
+  line-height: 1.2;
+}
+
+.poem-author {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  margin-bottom: 2em;
+  letter-spacing: 0.03em;
+}
+
+.poem-text {
+  font-size: 1.3rem;
+  line-height: 2.1;
+  white-space: pre-line;
+  color: #fff;
+  font-style: italic;
+  text-align: center;
+  margin-top: 2em;
+}
+
+.record-button-wrapper {
+  margin: 2em 0;
+}
+
+.record-button {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 1em 2em;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.record-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.02);
+}
+
+.record-button.recording {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: rgba(255, 0, 0, 0.7);
+  color: rgba(255, 0, 0, 0.7);
+  animation: pulse 1.5s infinite;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.mic-icon {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.info-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.info-tooltip {
+  visibility: hidden;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  text-align: center;
+  padding: 0.5em 1em;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+  width: 200px;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -100px;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+.info-icon-wrapper:hover .info-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.info-tooltip-title {
+  font-size: 1.25em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  letter-spacing: 0.02em;
+  color: #fff;
+  font-style: italic;
+}
+
+.info-tooltip-desc {
+  color: rgba(255,255,255,0.85);
+  font-size: 1em;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+  body {
+    padding: 2em 1em;
+  }
+  .poem-title {
+    font-size: 1.8rem;
+  }
+  .poem-text {
+    font-size: 1.1rem;
+  }
+} 
