@@ -24,7 +24,7 @@ class PoemFormatter:
         # final_poem = poem if formatted_result.strip().lower() == 'true' else f" ✨ {formatted_result}"
 
         if formatted_result.lower() == 'true':
-            final_poem = poem
+            final_poem = f"{response.choices[0].message.content} \n {poem}"
         elif formatted_result.lower() == 'false':
             final_poem = f"WE'RE GETTING FASLE \n {poem}"
         else:
