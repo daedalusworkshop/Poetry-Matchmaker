@@ -2,6 +2,30 @@
 
 A Python application that uses semantic search and AI to find and format poetry that matches your thoughts and feelings.
 
+## 🚀 Quick Setup (Recommended)
+
+### Automated Setup Scripts
+
+**For macOS/Linux:**
+```bash
+git clone https://github.com/daedalusworkshop/Poetry-Matchmaker.git
+cd Poetry-Matchmaker
+./setup.sh
+```
+
+**For Windows:**
+```cmd
+git clone https://github.com/daedalusworkshop/Poetry-Matchmaker.git
+cd Poetry-Matchmaker
+setup.bat
+```
+
+The setup scripts will automatically:
+- Create a virtual environment
+- Install all dependencies
+- Set up environment configuration
+- Guide you through API key setup
+
 ## Quick Start with GitHub
 
 ### Deploy to Another Folder/Machine
