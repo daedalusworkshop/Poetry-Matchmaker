@@ -1,0 +1,50 @@
+[
+  {
+    "prompt": "I fall in love too easily.",
+    "poems": [
+      {
+        "title": "[love is more thicker than forget]",
+        "author": "E. E. Cummings",
+        "text": "\r\n\r\nlove is more thicker than forget\r\n\r\nmore thinner than recall\r\n\r\nmore seldom than a wave is wet\r\n\r\nmore frequent than to fail\r\n\r\nit is most mad and moonly\r\n\r\nand less it shall unbe\r\n\r\nthan all the sea which only\r\n\r\nis deeper than the sea\r\n\r\nlove is less always than to win\r\n\r\nless never than alive\r\n\r\nless bigger than the least begin\r\n\r\nless littler than forgive\r\n\r\nit is most sane and sunly\r\n\r\nand more it cannot die\r\n\r\nthan all the sky which only\r\n\r\nis higher than the sky\r\n\r\n"
+      },
+      {
+        "title": "My Picture Left in Scotland",
+        "author": "Ben Jonson",
+        "text": "\r\n\r\nI now think Love is rather deaf than blind,\r\n\r\n  For else it could not be\r\n\r\n         That she,\r\n\r\n  Whom I adore so much, should so slight me\r\nAnd cast my love behind.\r\nI'm sure my language to her was as sweet,\r\n\r\n    And every close did meet\r\n\r\n    In sentence of as subtle feet,\r\n\r\n    As hath the youngest He\r\nThat sits in shadow of Apollo's tree.\r\n\r\n    O, but my conscious fears,\r\n\r\n         That fly my thoughts between,\r\n\r\n         Tell me that she hath seen\r\n\r\n    My hundred of gray hairs,\r\n\r\n    Told seven and forty years\r\n\r\n  Read so much waste, as she cannot embrace\r\n\r\n  My mountain belly and my rocky face;\r\nAnd all these through her eyes have stopp'd her ears.\r\n\r\n\r\n"
+      },
+      {
+        "title": "We Never Know",
+        "author": "Yusef Komunyakaa",
+        "text": "\r\n\r\nHe danced with tall grass\r\n\r\nfor a moment, like he was swaying\r\n\r\nwith a woman. Our gun barrels\r\n\r\nglowed white-hot.\r\n\r\nWhen I got to him,\r\n\r\na blue halo\r\n\r\nof flies had already claimed him.\r\n\r\nI pulled the crumbled photograph\r\n\r\nfrom his fingers.\r\n\r\nThere's no other way\r\n\r\nto say this: I fell in love.\r\n\r\nThe morning cleared again,\r\n\r\nexcept for a distant mortar\r\n\r\n& somewhere choppers taking off.\r\n\r\nI slid the wallet into his pocket\r\n\r\n& turned him over, so he wouldn't be\r\n\r\nkissing the ground.\r\n\r\n"
+      }
+    ],
+    "human_scores": [
+      {
+        "score": 8,
+        "notes": "First line definitely hits."
+      },
+      {
+        "score": 4,
+        "notes": "I don't feel like it connects completley."
+      },
+      {
+        "score": 8,
+        "notes": "Captures it"
+      }
+    ],
+    "llm_scores": [
+      {
+        "score": 5,
+        "explanation": "The poem discusses the depth and complexity of love, but it does not directly address the ease of falling in love as prompted."
+      },
+      {
+        "score": 5,
+        "explanation": "The poem relates to love and unrequited feelings but does not specifically address falling in love too easily."
+      },
+      {
+        "score": 8,
+        "explanation": "The poem indirectly addresses the prompt showing unexpected, rapid falling in love, but it is not the central theme."
+      }
+    ]
+  }
+]

@@ -4,7 +4,7 @@ class PoemFormatter:
     def __init__(self, api_key):
         self.client = OpenAI(api_key=api_key)
     
-    def format_poem(self, poem_data, idx=None):
+    def format_poem(self, poem_data, idx=None, return_string=False):
         title = poem_data["Title"].strip()
         author = poem_data["Poet"].strip()
         poem = poem_data["Poem"]
@@ -24,11 +24,15 @@ class PoemFormatter:
         # final_poem = poem if formatted_result.strip().lower() == 'true' else f" ✨ {formatted_result}"
 
         if formatted_result.lower() == 'true':
-            final_poem = f"{response.choices[0].message.content} \n {poem}"
+            final_poem = poem
         elif formatted_result.lower() == 'false':
             final_poem = f"WE'RE GETTING FASLE \n {poem}"
         else:
             final_poem = f"✨ {formatted_result}"
 
+        formatted_output = f"\n{header}\n{final_poem}"
         
-        print(f"\n{header}\n{final_poem}") 
+        if return_string:
+            return formatted_output
+        else:
+            print(formatted_output) 
