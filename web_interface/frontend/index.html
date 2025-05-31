@@ -4,453 +4,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Poetry Matchmaker</title>
-  <style>
-    :root {
-      /* Light theme colors */
-      --bg-light: #FAF7F0;
-      --surface-light: #F5F1E8;
-      --text-light: #2C2C2C;
-      --text-secondary-light: #5A5A5A;
-      --accent-light: #D4A574;
-      --border-light: rgba(44, 44, 44, 0.2);
-      
-      /* Dark theme colors */
-      --bg-dark: #1A1D21;
-      --surface-dark: #2C2C2C;
-      --text-dark: #F5F1E8;
-      --text-secondary-dark: rgba(245, 241, 232, 0.7);
-      --accent-dark: #D4A574;
-      --border-dark: rgba(245, 241, 232, 0.2);
-      
-      /* Current theme (default to dark) */
-      --bg: var(--bg-dark);
-      --surface: var(--surface-dark);
-      --text: var(--text-dark);
-      --text-secondary: var(--text-secondary-dark);
-      --accent: var(--accent-dark);
-      --border: var(--border-dark);
-      
-      /* Recording colors */
-      --recording-primary: #ff4757;
-      --recording-glow: rgba(255, 71, 87, 0.3);
-      
-      /* Breathing glow parameters */
-      --breathing-duration: 5s;
-      --breathing-max-scale: 1.15;
-      --breathing-min-scale: 0.98;
-      --glow-base-size: 20px;
-      --glow-peak-size: 30px;
-      --glow-base-opacity: 0.35;
-      --glow-peak-opacity: 0.5;
-      --inner-glow-base: 20px;
-      --inner-glow-peak: 30px;
-      --inner-glow-base-opacity: 0.1;
-      --inner-glow-peak-opacity: 0.2;
-    }
-
-    [data-theme="light"] {
-      --bg: var(--bg-light);
-      --surface: var(--surface-light);
-      --text: var(--text-light);
-      --text-secondary: var(--text-secondary-light);
-      --accent: var(--accent-light);
-      --border: var(--border-light);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      height: 100vh;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      font-family: 'Georgia', 'Times New Roman', Times, serif;
-      transition: background-color 0.6s ease, color 0.6s ease;
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* Subtle background texture */
-    body::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: 
-        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.015) 1px, transparent 0);
-      background-size: 20px 20px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .attract {
-      padding: 0 1.7em;
-      height: 3.5em;
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 2em;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text);
-      font-size: 2.2rem;
-      font-weight: 400;
-      user-select: none;
-      will-change: transform;
-      cursor: pointer;
-      transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-                  border 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-                  box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-                  color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      letter-spacing: 0.01em;
-      min-width: 280px;
-      min-height: 3.5em;
-      position: relative;
-      z-index: 1;
-      backdrop-filter: blur(10px);
-    }
-
-    .attract:not(.recording):not(.expanded) {
-      font-style: italic;
-    }
-
-    .attract:active {
-      transform: scale(1.01);
-      transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .attract.expanded {
-      width: 45vw;
-      height: 45vh;
-      border-radius: 1.5em;
-      flex-direction: column;
-      align-items: stretch;
-      cursor: text;
-      min-height: 0;
-      padding: 0;
-      position: relative;
-      overflow: hidden;
-      max-width: 600px;
-      min-width: 320px;
-    }
-
-    .attract-textarea {
-      box-sizing: border-box;
-      width: 100%;
-      height: 100%;
-      flex: 1 1 0;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-size: 1.4rem;
-      font-family: 'Georgia', 'Times New Roman', Times, serif;
-      font-style: italic;
-      outline: none;
-      resize: none;
-      margin: 0;
-      padding: 1.5em 1.5em 1em 1.5em;
-      line-height: 1.6;
-      overflow: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .attract-textarea::placeholder {
-      color: var(--text-secondary);
-      opacity: 0.8;
-    }
-
-    /* Breathing Recording Button */
-    .attract.recording {
-      background: transparent;
-      border: none;
-      min-width: 160px;
-      min-height: 160px;
-      border-radius: 50%;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: none;
-      color: transparent;
-      font-size: 0;
-      position: relative;
-      isolation: isolate;
-      z-index: 10;
-      outline: none;
-    }
-
-    .attract.recording:focus,
-    .attract.recording:active,
-    .attract.recording:hover {
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      outline: none;
-    }
-
-    .recording-container {
-      position: relative;
-      width: 160px;
-      height: 160px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      isolation: isolate;
-      z-index: 11;
-      background: transparent;
-      border: none;
-      outline: none;
-      box-shadow: none;
-    }
-
-    /* Breathing center circle */
-    .breathing-circle {
-      width: 80px;
-      height: 80px;
-      background: var(--recording-primary);
-      border-radius: 50%;
-      position: relative;
-      z-index: 3;
-      animation: breathe var(--breathing-duration) ease-in-out infinite;
-      box-shadow: 0 0 var(--glow-base-size) rgba(255, 71, 87, var(--glow-base-opacity)),
-                  inset 0 0 var(--inner-glow-base) rgba(255, 255, 255, var(--inner-glow-base-opacity));
-    }
-
-    @keyframes breathe {
-      0%   { 
-        transform: scale(1);
-        box-shadow: 0 0 var(--glow-base-size) rgba(255, 71, 87, var(--glow-base-opacity)),
-                    inset 0 0 var(--inner-glow-base) rgba(255, 255, 255, var(--inner-glow-base-opacity));
-      }
-      10%  { transform: scale(1); }
-      40%  { 
-        transform: scale(var(--breathing-max-scale));
-        box-shadow: 0 0 var(--glow-peak-size) rgba(255, 71, 87, var(--glow-peak-opacity)),
-                    inset 0 0 var(--inner-glow-peak) rgba(255, 255, 255, var(--inner-glow-peak-opacity));
-      }
-      70%  { transform: scale(var(--breathing-min-scale)); }
-      100% { 
-        transform: scale(1);
-        box-shadow: 0 0 var(--glow-base-size) rgba(255, 71, 87, var(--glow-base-opacity)),
-                    inset 0 0 var(--inner-glow-base) rgba(255, 255, 255, var(--inner-glow-base-opacity));
-      }
-    }
-
-    /* Hover state for recording button */
-    .attract.recording.hover-enabled:hover .breathing-circle {
-      background: var(--text);
-      transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), animation-duration 0.4s ease;
-    }
-
-    /* Theme switcher */
-    .theme-switcher {
-      position: fixed;
-      top: 24px;
-      right: 32px;
-      z-index: 10;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 2em;
-      padding: 0.5em 1em;
-      cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      backdrop-filter: blur(10px);
-    }
-
-    .theme-switcher:hover {
-      background: var(--accent);
-      color: var(--bg);
-      transform: scale(1.02);
-    }
-
-    .mode-switcher {
-      position: fixed;
-      top: 24px;
-      left: 32px;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 0.7em;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 2em;
-      padding: 0.5em 1.2em;
-      font-family: 'Georgia', 'Times New Roman', Times, serif;
-      font-size: 1rem;
-      color: var(--text);
-      user-select: none;
-      backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
-    }
-
-    .mode-switcher .mode {
-      cursor: pointer;
-      opacity: 0.6;
-      transition: opacity 0.3s ease;
-      padding: 0 0.3em;
-    }
-
-    .mode-switcher .mode.selected {
-      opacity: 1;
-      font-weight: 600;
-      color: var(--accent);
-    }
-
-    .mode-switcher .slash {
-      opacity: 0.4;
-      font-weight: 300;
-      pointer-events: none;
-    }
-
-    .attract-bottom-bar {
-      width: 100%;
-      border-top: 1px solid var(--border);
-      background: var(--surface);
-      border-bottom-left-radius: 1.5em;
-      border-bottom-right-radius: 1.5em;
-      min-height: 2em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .attract-bottom-bar:hover {
-      background: var(--accent);
-    }
-
-    .attract-bottom-bar:hover .attract-submit-btn {
-      color: var(--bg);
-    }
-
-    .attract-submit-btn {
-      width: 100%;
-      height: 100%;
-      background: none;
-      border: none;
-      color: var(--text);
-      font-size: 1.3rem;
-      font-family: 'Georgia', 'Times New Roman', Times, serif;
-      font-style: italic;
-      text-align: center;
-      cursor: pointer;
-      padding: 0.8em 0;
-      margin: 0;
-      transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      font-weight: 500;
-    }
-
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--bg);
-      backdrop-filter: blur(20px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      flex-direction: column;
-      transition: all 0.3s ease;
-    }
-    .loading-text {
-      color: var(--text);
-      font-family: 'Georgia', 'Times New Roman', Times, serif;
-      font-style: italic;
-      font-size: 1.5rem;
-      margin-top: 1em;
-      text-align: center;
-      font-weight: 500;
-    }
-    .loading-subtext {
-      color: var(--text-secondary);
-      font-family: 'Georgia', 'Times New Roman', Times, serif;
-      font-style: normal;
-      font-size: 1.1rem;
-      margin-top: 0.5em;
-      text-align: center;
-      max-width: 400px;
-      line-height: 1.4;
-      word-wrap: break-word;
-      font-weight: 400;
-    }
-    .loading-bar-container {
-      width: 300px;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      margin: 2em 0 1em 0;
-      overflow: hidden;
-    }
-    .loading-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--text-secondary));
-      border-radius: 2px;
-      width: 0%;
-      transition: width 0.5s ease;
-    }
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 3px solid var(--border);
-      border-top: 3px solid var(--accent);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Responsive design */
-    @media (max-width: 768px) {
-      .attract.expanded {
-        width: 85vw;
-        height: 50vh;
-      }
-      .mode-switcher {
-        left: 16px;
-        top: 16px;
-        font-size: 0.9rem;
-      }
-      .theme-switcher {
-        right: 16px;
-        top: 16px;
-        font-size: 0.9rem;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="theme-switcher" id="themeSwitcher">🌙</div>
+  <div class="our-method-trigger" id="ourMethodTrigger">How This Works ✨</div>
   <div class="mode-switcher" id="modeSwitcher">
-    <span class="mode selected" data-mode="microphone">Microphone</span>
+    <span class="mode selected" data-mode="microphone">Speak Your Heart</span>
     <span class="slash">/</span>
-    <span class="mode" data-mode="keyboard">Keyboard</span>
+    <span class="mode" data-mode="keyboard">Pen Your Thoughts</span>
   </div>
   <div class="attract" id="attractBtn">What's stirring in your heart today?</div>
 
   <div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
-    <div class="loading-bar-container">
+    <!-- Spinner div removed -->
+    <div class="loading-text" id="loadingText">Finding your perfect poem...</div>
+     <div class="loading-bar-container">
       <div class="loading-bar" id="loadingBar"></div>
     </div>
-    <div class="loading-text" id="loadingText">Finding your perfect poem...</div>
-    <div class="loading-subtext" id="loadingSubtext">Searching through thousands of poems</div>
+    <div class="loading-subtext" id="loadingSubtext">Searching worlds of verse...</div>
+  </div>
+
+  <!-- Modal HTML Structure -->
+  <div class="modal-overlay" id="ourMethodModalOverlay">
+    <div class="modal-content">
+      <span class="modal-close-btn" id="ourMethodModalCloseBtn">&times;</span>
+      <h2>The Heart of Our Poetry Engine</h2>
+      <p>Ever wonder how we find that perfect verse to echo your innermost feelings? It's a blend of poetic intuition and thoughtful technology, designed for everyone from the curious reader to the tech-savvy explorer.</p>
+
+      <h3>For the Lover of Words:</h3>
+      <p>Imagine whispering your mood, a fleeting thought, or a deep emotion. Our digital muse listens, not just for words, but for the feeling behind them. It then journeys through a vast library of poetry, seeking verses that resonate with that unique emotional signature. The poem chosen for you is one our AI believes truly captures the essence of what you shared, offering a moment of connection and understanding.</p>
+
+      <h3>For the Tech-Curious Mind:</h3>
+      <p>Our process begins by transforming your textual or transcribed audio input into a rich numerical representation called an <code_inline>embedding</code_inline>. This captures the semantic essence of your query. We then use this embedding to perform a similarity search against a pre-indexed database of poems (also converted into embeddings), retrieving the top 22 most contextually relevant poems.</p>
+      <p>But we don't stop there. Each of these 22 candidates is then presented to an advanced Large Language Model (LLM, specifically GPT-4.1). The LLM scores each poem based on its relevance, nuance, and emotional resonance with your original query, also providing a qualitative explanation for its top choice. This two-stage process—broad semantic search followed by deep LLM-driven evaluation—allows for a uniquely sensitive and accurate matching of poetry to your expressed state.</p>
+
+      <h3>Why This Approach?</h3>
+      <p>Many poetry finders rely on simple keywords or predefined tags. We aim for something deeper: a connection based on the authentic feeling and meaning you express. By combining the breadth of embedding search with the nuanced understanding of a sophisticated LLM, we hope to offer you not just any poem, but a poem that truly speaks to you.</p>
+    </div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -517,7 +108,8 @@
       "What's been quietly waiting to be heard?",
       "What would you like to remember about this moment?",
       "What emotion needs expression?",
-      "What story lives within you right now?"
+      "What story lives within you right now?",
+      "What unspoken verse resides within?"
     ];
 
     const typingPrompts = [
@@ -527,7 +119,8 @@
       "Write what's been quietly waiting...",
       "Capture what you'd like to remember...",
       "Put your emotions into words...",
-      "Tell your story..."
+      "Tell your story...",
+      "Scribe the whispers of your heart..."
     ];
 
     let currentPromptIndex = 0;
@@ -572,11 +165,22 @@
 
     function showLoading() {
       loadingOverlay.style.display = 'flex';
-      updateLoadingProgress(0, "Finding your perfect poem...", "Searching through thousands of poems");
+      loadingOverlay.style.opacity = '1'; // Added this line
+      updateLoadingProgress(0, "Finding your perfect poem...", "Searching worlds of verse...");
     }
 
     function hideLoading() {
-      loadingOverlay.style.display = 'none';
+      // This function might become redundant or less used if opacity handles hiding.
+      // For now, direct opacity manipulation is used. If display:none is still needed,
+      // it should be coordinated with the opacity transition.
+      // For this subtask, we'll primarily use opacity for the transition out.
+      loadingOverlay.style.opacity = '0';
+      // To ensure it's hidden for accessibility and interaction after transition:
+      setTimeout(() => {
+        if (loadingOverlay.style.opacity === '0') { // Check if it wasn't re-shown
+            loadingOverlay.style.display = 'none';
+        }
+      }, 500); // Match transition duration
     }
 
     function updateLoadingProgress(percentage, mainText, subText) {
@@ -595,11 +199,11 @@
       }
     }
 
-    function navigateToResult(data) {
-      // Store result data in sessionStorage
-      sessionStorage.setItem('poemResult', JSON.stringify(data));
-      window.location.href = '/result';
-    }
+    // function navigateToResult(data) { // This function is now removed.
+    // // Store result data in sessionStorage
+    // sessionStorage.setItem('poemResult', JSON.stringify(data));
+    // window.location.href = '/result';
+    // }
 
     async function processText(text) {
       try {
@@ -616,11 +220,11 @@
           switch(data.type) {
             case 'status':
               if (data.message.includes("Searching for the top")) {
-                updateLoadingProgress(5, data.message, "Finding semantically similar poems");
+                updateLoadingProgress(5, data.message, "Seeking kindred spirits in rhyme...");
               } else if (data.message.includes("Scoring poems for relevance")) {
-                updateLoadingProgress(10, data.message, "Preparing to evaluate 22 poems");
+                updateLoadingProgress(10, data.message, "Consulting the muses for 22 verses...");
               } else if (data.message.includes("Selecting the perfect")) {
-                updateLoadingProgress(95, data.message, "Choosing your best match");
+                updateLoadingProgress(95, data.message, "Selecting your soul's echo...");
               } else if (data.message.includes("Perfect match found")) {
                 updateLoadingProgress(98, data.message, "Redirecting to your poem...");
               } else if (data.message.includes("Formatting")) {
@@ -647,20 +251,34 @@
               break;
             case 'complete':
               hasReceivedResult = true;
-              updateLoadingProgress(null, "Perfect match found!", "Redirecting to your poem...");
-              setTimeout(() => {
-                hideLoading();
-                eventSource.close();
-                const result = JSON.parse(data.message);
-                if (result.success) {
-                  navigateToResult(result);
-                } else {
-                  alert('Error: ' + result.error);
+              updateLoadingProgress(100, "Perfect match found!", "Revealing your poem...");
+
+              loadingOverlay.style.opacity = '0';
+
+              loadingOverlay.addEventListener('transitionend', function handleTransitionEnd(event) {
+                if (event.propertyName === 'opacity' && loadingOverlay.style.opacity === '0') {
+                  eventSource.close();
+                  const resultData = JSON.parse(data.message);
+                  if (resultData.success) {
+                    sessionStorage.setItem('poemResult', JSON.stringify(resultData));
+                    window.location.href = '/result';
+                  } else {
+                    loadingOverlay.style.opacity = '1'; // Show overlay again on error
+                    alert('Error: ' + resultData.error);
+                  }
                 }
-              }, 800);
+              }, { once: true });
               break;
             case 'error':
-              hideLoading();
+              // Restore opacity if overlay was fading out
+              if (loadingOverlay.style.opacity === '0') {
+                loadingOverlay.style.opacity = '1';
+              }
+              hideLoading(); // This will set display:none after a delay if opacity is still 0, or just reset opacity
+              eventSource.close();
+              alert('Error processing request: ' + data.message);
+              break;
+            case 'heartbeat':
               eventSource.close();
               alert('Error processing request: ' + data.message);
               break;
@@ -720,11 +338,11 @@
           switch(data.type) {
             case 'status':
               if (data.message.includes("Searching for the top")) {
-                updateLoadingProgress(15, data.message, "Finding semantically similar poems");
+                updateLoadingProgress(15, data.message, "Seeking kindred spirits in rhyme...");
               } else if (data.message.includes("Scoring poems for relevance")) {
-                updateLoadingProgress(20, data.message, "Preparing to evaluate 22 poems");
+                updateLoadingProgress(20, data.message, "Consulting the muses for 22 verses...");
               } else if (data.message.includes("Selecting the perfect")) {
-                updateLoadingProgress(95, data.message, "Choosing your best match");
+                updateLoadingProgress(95, data.message, "Selecting your soul's echo...");
               } else if (data.message.includes("Perfect match found")) {
                 updateLoadingProgress(98, data.message, "Redirecting to your poem...");
               } else if (data.message.includes("Formatting")) {
@@ -751,20 +369,34 @@
               break;
             case 'complete':
               hasReceivedResult = true;
-              updateLoadingProgress(null, "Perfect match found!", "Redirecting to your poem...");
-              setTimeout(() => {
-                hideLoading();
-                eventSource.close();
-                const result = JSON.parse(data.message);
-                if (result.success) {
-                  navigateToResult(result);
-                } else {
-                  alert('Error: ' + result.error);
+              updateLoadingProgress(100, "Perfect match found!", "Revealing your poem...");
+
+              loadingOverlay.style.opacity = '0';
+
+              loadingOverlay.addEventListener('transitionend', function handleTransitionEnd(event) {
+                if (event.propertyName === 'opacity' && loadingOverlay.style.opacity === '0') {
+                  eventSource.close();
+                  const resultData = JSON.parse(data.message);
+                  if (resultData.success) {
+                    sessionStorage.setItem('poemResult', JSON.stringify(resultData));
+                    window.location.href = '/result';
+                  } else {
+                    loadingOverlay.style.opacity = '1'; // Show overlay again on error
+                    alert('Error: ' + resultData.error);
+                  }
                 }
-              }, 800);
+              }, { once: true });
               break;
             case 'error':
-              hideLoading();
+              // Restore opacity if overlay was fading out
+              if (loadingOverlay.style.opacity === '0') {
+                loadingOverlay.style.opacity = '1';
+              }
+              hideLoading(); // This will set display:none after a delay if opacity is still 0, or just reset opacity
+              eventSource.close();
+              alert('Error processing audio: ' + data.message);
+              break;
+            case 'heartbeat':
               eventSource.close();
               alert('Error processing audio: ' + data.message);
               break;
@@ -796,7 +428,7 @@
         attractBtn.innerHTML = `
           <textarea class="attract-textarea" placeholder="${getNextPrompt(true)}"></textarea>
           <div class="attract-bottom-bar">
-            <button class="attract-submit-btn">Submit</button>
+            <button class="attract-submit-btn">Find My Verse</button>
           </div>
         `;
         const submitBtn = attractBtn.querySelector('.attract-submit-btn');
@@ -868,6 +500,70 @@
       });
     });
 
+    // Modal Toggle Logic
+    const ourMethodTrigger = document.getElementById('ourMethodTrigger');
+    const ourMethodModalOverlay = document.getElementById('ourMethodModalOverlay');
+    const ourMethodModalCloseBtn = document.getElementById('ourMethodModalCloseBtn');
+    const modalContent = ourMethodModalOverlay.querySelector('.modal-content');
+
+    if (ourMethodTrigger && ourMethodModalOverlay && ourMethodModalCloseBtn) {
+      ourMethodTrigger.addEventListener('click', () => {
+        ourMethodModalOverlay.style.display = 'flex';
+        setTimeout(() => { // Allow display flex to apply before transition
+          ourMethodModalOverlay.style.opacity = '1';
+          modalContent.style.transform = 'scale(1)';
+        }, 10);
+      });
+
+      ourMethodModalCloseBtn.addEventListener('click', () => {
+        ourMethodModalOverlay.style.opacity = '0';
+        modalContent.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          ourMethodModalOverlay.style.display = 'none';
+        }, 400); // Match transition duration
+      });
+
+      // Optional: Close modal if overlay is clicked
+      ourMethodModalOverlay.addEventListener('click', (event) => {
+        if (event.target === ourMethodModalOverlay) {
+          ourMethodModalCloseBtn.click(); // Trigger close button logic
+        }
+      });
+    }
+  </script>
+  <script>
+    // Modal Toggle Logic for "Our Method"
+    const ourMethodTrigger = document.getElementById('ourMethodTrigger');
+    const ourMethodModalOverlay = document.getElementById('ourMethodModalOverlay');
+    const ourMethodModalCloseBtn = document.getElementById('ourMethodModalCloseBtn');
+
+    if (ourMethodTrigger && ourMethodModalOverlay && ourMethodModalCloseBtn) {
+      const modalContent = ourMethodModalOverlay.querySelector('.modal-content'); // Get modalContent inside if
+      ourMethodTrigger.addEventListener('click', () => {
+        ourMethodModalOverlay.style.display = 'flex';
+        setTimeout(() => { // Allow display flex to apply before transition
+          ourMethodModalOverlay.style.opacity = '1';
+          if (modalContent) modalContent.style.transform = 'scale(1)';
+        }, 10);
+      });
+
+      const closeModal = () => {
+        ourMethodModalOverlay.style.opacity = '0';
+        if (modalContent) modalContent.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          ourMethodModalOverlay.style.display = 'none';
+        }, 400); // Match transition duration
+      };
+
+      ourMethodModalCloseBtn.addEventListener('click', closeModal);
+
+      // Optional: Close modal if overlay is clicked
+      ourMethodModalOverlay.addEventListener('click', (event) => {
+        if (event.target === ourMethodModalOverlay) {
+          closeModal(); // Use the new closeModal function
+        }
+      });
+    }
   </script>
 </body>
 </html> 
